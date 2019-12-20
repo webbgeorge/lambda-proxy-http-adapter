@@ -1,0 +1,17 @@
+language: go
+
+go:
+  - "1.13.x"
+  - "1.12.x"
+  - "tip"
+
+matrix:
+  allow_failures:
+    - go: tip
+  fast_finish: true
+
+script:
+  - make test
+
+env:
+  - GO111MODULE=on
