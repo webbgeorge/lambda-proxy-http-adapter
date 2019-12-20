@@ -1,5 +1,7 @@
 # Lambda Proxy HTTP Adapter
 
+[![Build Status](https://travis-ci.org/gaw508/lambda-proxy-http-adapter.svg?branch=master)](https://travis-ci.org/gaw508/lambda-proxy-http-adapter)
+
 Wrap your API Gateway Proxy Lambda handlers in a go net/http handler. Useful to make the Lambda Proxy handlers
 compatible with the huge amount of tooling that already exists for net/http.
 
