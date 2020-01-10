@@ -1,6 +1,7 @@
 package lambda_proxy_http_adapter
 
 import (
+	"context"
 	"io/ioutil"
 	"net/http"
 	"regexp"
@@ -15,13 +16,33 @@ func GetHttpHandler(
 	resourcePathPattern string,
 	stageVariables map[string]string,
 ) http.Handler {
+	return getHttpHandler(func(ctx context.Context, r events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
+		return lambdaHandler(r)
+	}, resourcePathPattern, stageVariables)
+}
+
+type APIGatewayProxyHandlerWithContext func(ctx context.Context, r events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error)
+
+func GetHttpHandlerWithContext(
+	lambdaHandler APIGatewayProxyHandlerWithContext,
+	resourcePathPattern string,
+	stageVariables map[string]string,
+) http.Handler {
+	return getHttpHandler(lambdaHandler, resourcePathPattern, stageVariables)
+}
+
+func getHttpHandler(
+	lambdaHandler APIGatewayProxyHandlerWithContext,
+	resourcePathPattern string,
+	stageVariables map[string]string,
+) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		body, err := ioutil.ReadAll(r.Body)
 		if err != nil {
 			panic(err)
 		}
 
-		proxyResponse, err := lambdaHandler(events.APIGatewayProxyRequest{
+		proxyResponse, err := lambdaHandler(r.Context(), events.APIGatewayProxyRequest{
 			Resource:                        resourcePathPattern,
 			Path:                            r.URL.Path,
 			HTTPMethod:                      r.Method,
