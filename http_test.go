@@ -138,6 +138,13 @@ func TestParseParams(t *testing.T) {
 				"name": "dave",
 			},
 		},
+		"param with hyphens": {
+			pathPattern: "/root/{middle}/end",
+			path:        "/root/abc-def/end",
+			expectedParams: map[string]string{
+				"middle": "abc-def",
+			},
+		},
 		"one param no matches": {
 			pathPattern:    "/greet/{name}",
 			path:           "/",

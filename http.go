@@ -4,9 +4,9 @@ import (
 	"context"
 	"io/ioutil"
 	"net/http"
-	"regexp"
 
 	"github.com/aws/aws-lambda-go/events"
+	"github.com/gorilla/reverse"
 )
 
 type APIGatewayProxyHandler func(r events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error)
@@ -77,18 +77,18 @@ func singleValue(multiValueMap map[string][]string) map[string]string {
 }
 
 func parsePathParams(pathPattern string, path string) map[string]string {
-	exp := regexp.MustCompile(`{(\w+)}`)
-	pathPatternExp := regexp.MustCompile(exp.ReplaceAllString(pathPattern, `(?P<$1>\w+)`))
-
-	subMatches := pathPatternExp.FindStringSubmatch(path)
-	subMatchNames := pathPatternExp.SubexpNames()
+	re, err := reverse.NewGorillaPath(pathPattern, false)
+	if err != nil {
+		return map[string]string{}
+	}
 
 	params := make(map[string]string)
-	for i, paramName := range subMatchNames {
-		if paramName == "" || len(subMatches) < i {
-			continue
+	if matches := re.MatchString(path); matches {
+		for name, values := range re.Values(path) {
+			if len(values) > 0 {
+				params[name] = values[0]
+			}
 		}
-		params[paramName] = subMatches[i]
 	}
 
 	return params
